@@ -4,8 +4,7 @@ const AuthorizedDomains = {
         'localhost',
         'anime-clothing-brand.web.app',
         'anime-clothing-brand.firebaseapp.com',
-        'notworking33.netlify.app/',
-        // Netlify deployment URL will be added dynamically
+        'notworking33.netlify.app',
         window.location.hostname
     ],
 
@@ -28,7 +27,26 @@ const AuthorizedDomains = {
         if (!this.isAuthorized()) {
             console.warn(`Unauthorized domain: ${window.location.hostname}`);
             // Optional: Redirect to a default page or show warning
+            this.handleUnauthorizedDomain();
         }
+    },
+
+    // Handle unauthorized domain access
+    handleUnauthorizedDomain() {
+        const warningBanner = document.createElement('div');
+        warningBanner.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: #ff4d4d;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            z-index: 1000;
+        `;
+        warningBanner.textContent = `Warning: Accessing from an unauthorized domain (${window.location.hostname})`;
+        document.body.prepend(warningBanner);
     }
 };
 

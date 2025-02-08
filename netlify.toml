@@ -7,7 +7,8 @@
   [headers.values]
     X-Frame-Options = "DENY"
     X-XSS-Protection = "1; mode=block"
-    Content-Security-Policy = "default-src 'self'; script-src 'self' https://www.gstatic.com https://js.razorpay.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://firestore.googleapis.com"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' https://www.gstatic.com https://www.google.com; connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com; img-src 'self' data: https:;"
+    Referrer-Policy = "strict-origin-when-cross-origin"
 
 [[redirects]]
   from = "/*"
@@ -15,6 +16,6 @@
   status = 200
 
 [context.production.environment]
-  FIREBASE_API_KEY = ""
-  FIREBASE_AUTH_DOMAIN = ""
-  FIREBASE_PROJECT_ID = ""
+  FIREBASE_API_KEY = "AIzaSyBUV-IWV0UWSQNKrt9hqG2ZvUrEkVk9F-s"
+  FIREBASE_AUTH_DOMAIN = "anime-clothing-brand.firebaseapp.com"
+  FIREBASE_PROJECT_ID = "anime-clothing-brand"
