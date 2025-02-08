@@ -1,0 +1,19 @@
+{
+    "name": "anime-threads",
+    "version": "1.0.0",
+    "description": "Anime Clothing E-Commerce Website",
+    "scripts": {
+        "start": "npx live-server src",
+        "test": "echo \"No tests specified\" && exit 0"
+    },
+    "keywords": [
+        "anime",
+        "ecommerce",
+        "clothing"
+    ],
+    "author": "Your Name",
+    "license": "MIT",
+    "devDependencies": {
+        "live-server": "^1.2.0"
+    }
+}
