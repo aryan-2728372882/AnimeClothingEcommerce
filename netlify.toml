@@ -7,9 +7,14 @@
   [headers.values]
     X-Frame-Options = "DENY"
     X-XSS-Protection = "1; mode=block"
-    Content-Security-Policy = "default-src 'self'; script-src 'self' https://www.gstatic.com https://js.razorpay.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:;"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' https://www.gstatic.com https://js.razorpay.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://firestore.googleapis.com"
 
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
+
+[context.production.environment]
+  FIREBASE_API_KEY = ""
+  FIREBASE_AUTH_DOMAIN = ""
+  FIREBASE_PROJECT_ID = ""
