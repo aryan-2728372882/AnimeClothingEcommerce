@@ -23,9 +23,9 @@ const Logger = {
 
 // Firebase Configuration
 const firebaseConfig = {
-    apiKey: "AIzaSyBUV-IWV0UWSQNKrt9hqG2ZvUrEkVk9F-s",
-    authDomain: "anime-clothing-brand.firebaseapp.com",
-    projectId: "anime-clothing-brand",
+    apiKey: window._env_ && window._env_.FIREBASE_API_KEY || "AIzaSyBUV-IWV0UWSQNKrt9hqG2ZvUrEkVk9F-s",
+    authDomain: window._env_ && window._env_.FIREBASE_AUTH_DOMAIN || "anime-clothing-brand.firebaseapp.com",
+    projectId: window._env_ && window._env_.FIREBASE_PROJECT_ID || "anime-clothing-brand",
     storageBucket: "anime-clothing-brand.appspot.com",
     messagingSenderId: "1041175810114",
     appId: "1:1041175810114:web:dcb5653d96c8681e261ddb",
