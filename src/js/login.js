@@ -168,52 +168,46 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     });
 
-    // Google Login/Signup
-    function handleGoogleAuth() {
-        const provider = new firebase.auth.GoogleAuthProvider();
-        provider.setCustomParameters({
-            'prompt': 'select_account'
-        });
+    // Google Sign-In Event Listeners
+    const setupGoogleSignIn = (buttonId) => {
+        const googleButton = document.getElementById(buttonId);
         
-        firebase.auth().signInWithPopup(provider)
-            .then((result) => {
-                const user = result.user;
+        if (googleButton) {
+            googleButton.addEventListener('click', async (e) => {
+                e.preventDefault();
                 
-                // Save or update user in Firestore
-                return firebase.firestore().collection('users').doc(user.uid).set({
-                    name: user.displayName,
-                    email: user.email,
-                    photoURL: user.photoURL,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    role: 'customer'
-                }, { merge: true });
-            })
-            .then(() => {
-                console.log('Google authentication successful');
-                window.location.href = 'index.html';
-            })
-            .catch((error) => {
-                const errorCode = error.code;
-                const errorMessage = error.message;
-                
-                let userFriendlyMessage = 'Google Sign-In failed. Please try again.';
-                
-                switch (errorCode) {
-                    case 'auth/account-exists-with-different-credential':
-                        userFriendlyMessage = 'An account already exists with a different login method.';
-                        break;
-                    case 'auth/popup-blocked':
-                        userFriendlyMessage = 'Popup blocked. Please enable popups and try again.';
-                        break;
+                try {
+                    const provider = new firebase.auth.GoogleAuthProvider();
+                    provider.setCustomParameters({
+                        'prompt': 'select_account'
+                    });
+                    
+                    const result = await firebase.auth().signInWithPopup(provider);
+                    const user = result.user;
+                    
+                    // Save or update user in Firestore
+                    await firebase.firestore().collection('users').doc(user.uid).set({
+                        name: user.displayName,
+                        email: user.email,
+                        photoURL: user.photoURL,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        role: 'customer'
+                    }, { merge: true });
+                    
+                    console.log('Google Sign-In Successful');
+                    window.location.href = 'index.html';
+                } catch (error) {
+                    // Display user-friendly error message
+                    alert(error.message);
+                    console.error(`Google Sign-In Failed: ${error.message}`);
                 }
-                
-                alert(userFriendlyMessage);
-                console.error('Google Login Error:', errorMessage);
             });
-    }
+        }
+    };
 
-    googleLoginBtn?.addEventListener('click', handleGoogleAuth);
-    googleSignupBtn?.addEventListener('click', handleGoogleAuth);
+    // Setup Google Sign-In for both login and signup buttons
+    setupGoogleSignIn('google-login-btn');
+    setupGoogleSignIn('google-signup-btn');
 
     // Initial Form State
     if (window.location.hash === '#signup') {

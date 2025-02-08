@@ -123,21 +123,58 @@ const AuthStateManager = {
 const AuthMethods = {
     signInWithGoogle: () => {
         const provider = new firebase.auth.GoogleAuthProvider();
-        provider.setCustomParameters({ 'prompt': 'select_account' });
-        
-        return auth.signInWithPopup(provider)
+        provider.setCustomParameters({
+            'prompt': 'select_account',
+            'login_hint': 'user@example.com'
+        });
+
+        // Add scopes for more comprehensive access
+        provider.addScope('profile');
+        provider.addScope('email');
+
+        return firebase.auth().signInWithPopup(provider)
             .then((result) => {
                 const user = result.user;
                 
-                return db.collection('users').doc(user.uid).set({
+                // Create/Update user profile in Firestore
+                return firebase.firestore().collection('users').doc(user.uid).set({
                     name: user.displayName,
                     email: user.email,
                     photoURL: user.photoURL,
-                    lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                     role: 'customer'
                 }, { merge: true });
             })
-            .catch(AuthErrorHandler.handleError);
+            .catch((error) => {
+                // Detailed error logging
+                console.error('Google Sign-In Error:', {
+                    code: error.code,
+                    message: error.message,
+                    email: error.email,
+                    credential: error.credential
+                });
+
+                // User-friendly error handling
+                let userFriendlyMessage = 'Google Sign-In failed. Please try again.';
+                
+                switch (error.code) {
+                    case 'auth/account-exists-with-different-credential':
+                        userFriendlyMessage = 'An account already exists with a different login method.';
+                        break;
+                    case 'auth/popup-blocked':
+                        userFriendlyMessage = 'Login popup blocked. Please enable popups and try again.';
+                        break;
+                    case 'auth/popup-closed-by-user':
+                        userFriendlyMessage = 'Login popup was closed. Please try again.';
+                        break;
+                }
+
+                // Log to custom logging system
+                Logger.error(`Google Sign-In Error: ${userFriendlyMessage}`);
+                
+                // Throw error for further handling
+                throw new Error(userFriendlyMessage);
+            });
     },
     signOut: () => {
         return auth.signOut()
