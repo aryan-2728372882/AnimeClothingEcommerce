@@ -4,6 +4,7 @@ const AuthorizedDomains = {
         'localhost',
         'anime-clothing-brand.web.app',
         'anime-clothing-brand.firebaseapp.com',
+        'notworking33.netlify.app/',
         // Netlify deployment URL will be added dynamically
         window.location.hostname
     ],

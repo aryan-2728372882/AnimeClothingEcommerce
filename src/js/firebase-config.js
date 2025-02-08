@@ -70,45 +70,43 @@ const AuthErrorHandler = {
     }
 };
 
-// Network Connectivity Utility
+// Enhanced Network Connectivity Utility
 const NetworkManager = {
     isOnline: () => navigator.onLine,
     
-    checkConnectivity: () => {
-        return new Promise((resolve, reject) => {
-            if (!NetworkManager.isOnline()) {
-                reject(new Error('No internet connection'));
-                return;
-            }
-
-            // Additional network check using fetch
-            fetch('https://www.google.com', { 
-                mode: 'no-cors', 
-                cache: 'no-store' 
-            })
-            .then(() => resolve(true))
-            .catch(() => reject(new Error('Network connection is unstable')));
-        });
+    checkConnectivity: async () => {
+        try {
+            // Use advanced network diagnostics
+            await window.NetworkDiagnostics.checkConnectivity();
+            return true;
+        } catch (error) {
+            console.error('Network Connectivity Check Failed:', error);
+            throw error;
+        }
     },
 
     setupConnectivityListeners: () => {
         window.addEventListener('online', () => {
-            Logger.log('Network connection restored', 'info');
-            document.dispatchEvent(new Event('network-online'));
+            console.log('Network connection restored');
+            document.dispatchEvent(new CustomEvent('network-online', {
+                detail: { timestamp: new Date() }
+            }));
         });
 
         window.addEventListener('offline', () => {
-            Logger.warn('Network connection lost', 'warning');
-            document.dispatchEvent(new Event('network-offline'));
+            console.warn('Network connection lost');
+            document.dispatchEvent(new CustomEvent('network-offline', {
+                detail: { timestamp: new Date() }
+            }));
         });
     }
 };
 
-// Enhanced Authentication Methods
+// Enhanced Authentication Methods with Advanced Error Handling
 const AuthMethods = {
     signInWithGoogle: async () => {
         try {
-            // Check network connectivity before authentication
+            // Comprehensive network check
             await NetworkManager.checkConnectivity();
 
             const provider = new firebase.auth.GoogleAuthProvider();
@@ -117,15 +115,15 @@ const AuthMethods = {
                 'login_hint': 'user@example.com'
             });
 
-            // Add scopes for more comprehensive access
+            // Add comprehensive scopes
             provider.addScope('profile');
             provider.addScope('email');
 
-            // Implement timeout for authentication
+            // Implement robust authentication with timeout and retry
             return new Promise((resolve, reject) => {
                 const authTimeout = setTimeout(() => {
-                    reject(new Error('Authentication request timed out. Please try again.'));
-                }, 15000); // 15 seconds timeout
+                    reject(new Error('Authentication request timed out. Please check your network.'));
+                }, 20000); // 20 seconds timeout
 
                 firebase.auth().signInWithPopup(provider)
                     .then(async (result) => {
@@ -133,32 +131,35 @@ const AuthMethods = {
                         const user = result.user;
                         
                         try {
-                            // Create/Update user profile in Firestore with retry mechanism
+                            // Network-resilient Firestore update
                             await NetworkManager.checkConnectivity();
                             await firebase.firestore().collection('users').doc(user.uid).set({
                                 name: user.displayName,
                                 email: user.email,
                                 photoURL: user.photoURL,
                                 createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                                lastLogin: firebase.firestore.FieldValue.serverTimestamp(),
                                 role: 'customer'
                             }, { merge: true });
 
                             resolve(user);
                         } catch (firestoreError) {
-                            // Firestore save failed, but authentication succeeded
-                            Logger.warn(`Firestore profile update failed: ${firestoreError.message}`);
+                            // Firestore save might fail, but authentication succeeded
+                            console.warn(`Firestore profile update failed: ${firestoreError.message}`);
                             resolve(user);
                         }
                     })
                     .catch((error) => {
                         clearTimeout(authTimeout);
                         
-                        // Detailed network error handling
-                        let userFriendlyMessage = 'Google Sign-In failed. Please try again.';
+                        // Advanced error analysis
+                        const networkError = window.NetworkDiagnostics.analyzeNetworkError(error);
+                        
+                        let userFriendlyMessage = 'Authentication failed. Please try again.';
                         
                         switch (error.code) {
                             case 'auth/network-request-failed':
-                                userFriendlyMessage = 'Network error. Please check your internet connection.';
+                                userFriendlyMessage = `Network Error: ${networkError.type}. Please check your connection.`;
                                 break;
                             case 'auth/too-many-requests':
                                 userFriendlyMessage = 'Too many login attempts. Please try again later.';
@@ -171,14 +172,13 @@ const AuthMethods = {
                                 break;
                         }
 
-                        Logger.error(`Google Sign-In Error: ${error.code} - ${error.message}`);
+                        console.error('Google Sign-In Error:', networkError);
                         reject(new Error(userFriendlyMessage));
                     });
             });
         } catch (connectivityError) {
-            // Network connectivity check failed
-            Logger.error(`Network Error: ${connectivityError.message}`);
-            throw new Error('No internet connection. Please check your network.');
+            console.error('Network Connectivity Error:', connectivityError);
+            throw new Error('No internet connection. Please check your network settings.');
         }
     },
 
