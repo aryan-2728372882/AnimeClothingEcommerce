@@ -1,48 +1,67 @@
-# 🌟 Anime Threads - E-Commerce Clothing Store
+# Anime Clothing E-Commerce Platform
 
-## 📦 Project Overview
-Anime Threads is a fully responsive e-commerce website for anime-inspired clothing, built with vanilla HTML, CSS, and JavaScript.
+## Project Overview
+An anime-themed clothing e-commerce website with modern authentication and shopping features.
 
-## 🚀 Features
-- 🎨 Responsive Design
-- 🛒 Interactive Shopping Cart
-- 🔐 Firebase Authentication
-- 💳 Razorpay Payment Integration
-- 🌓 Dark/Light Mode Toggle
-- 🚀 Smooth Animations
-
-## 🛠 Tech Stack
+## Tech Stack
 - Frontend: HTML, CSS, JavaScript
-- Backend: Firebase Firestore, Firebase Functions
-- Payment: Razorpay
+- Backend: Firebase Authentication & Firestore
 - Hosting: Netlify
+- Payment: Razorpay
 
-## 🔧 Prerequisites
-- Node.js
+## Deployment Instructions
+
+### Prerequisites
+- GitHub Account
+- Netlify Account
 - Firebase Account
-- Razorpay Account
-
-## 🚦 Setup Instructions
 
 ### Firebase Setup
-1. Create a Firebase project
-2. Enable Authentication (Google Sign-In)
-3. Set up Firestore Database
-4. Create `.env` file with Firebase config
+1. Create a new Firebase project
+2. Enable Authentication (Email/Password, Google Sign-In)
+3. Create Firestore database
+4. Copy Firebase configuration
 
-### Razorpay Setup
-1. Create Razorpay account
-2. Get API keys
-3. Add keys to `.env` file
+### Netlify Deployment
+1. Connect GitHub repository
+2. Set build settings:
+   - Build command: `echo 'No build step needed'`
+   - Publish directory: `src`
 
-### Local Development
+### Environment Variables
+Set the following in Netlify:
+- `FIREBASE_API_KEY`
+- `FIREBASE_AUTH_DOMAIN`
+- `FIREBASE_PROJECT_ID`
+
+## Local Development
 1. Clone repository
-2. Install dependencies: `npm install`
-3. Run local server: `npm start`
+2. Open `src/js/firebase-config.js`
+3. Replace Firebase config with your credentials
+4. Run on local server
 
-## 🌐 Deployment
-- Frontend: Netlify
-- Backend: Firebase Functions
+## Testing
+- Comprehensive test suite in `src/js/test-suite.js`
+- Runs automatically in development environment
 
-## 📝 License
+## Features
+- User Authentication
+- Google Sign-In
+- Responsive Design
+- Cart Management
+- Checkout Process
+
+## Security
+- Route protection
+- Error handling
+- Logging utility
+
+## Contributing
+1. Fork repository
+2. Create feature branch
+3. Commit changes
+4. Push to branch
+5. Create pull request
+
+## License
 MIT License
