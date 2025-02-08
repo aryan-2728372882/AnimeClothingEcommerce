@@ -1,4 +1,4 @@
-# Anime Clothing E-Commerce Platform
+# Anime Threads E-Commerce Platform
 
 ## Project Overview
 An anime-themed clothing e-commerce website with modern authentication and shopping features.
@@ -9,40 +9,57 @@ An anime-themed clothing e-commerce website with modern authentication and shopp
 - Hosting: Netlify
 - Payment: Razorpay
 
-## Deployment Instructions
+## Deployment Configuration
 
-### Prerequisites
-- GitHub Account
-- Netlify Account
-- Firebase Account
+### GitHub Secrets Configuration
+To deploy this project, you need to configure the following GitHub Secrets:
 
-### Firebase Setup
-1. Create a new Firebase project
-2. Enable Authentication (Email/Password, Google Sign-In)
-3. Create Firestore database
-4. Copy Firebase configuration
+1. `NETLIFY_AUTH_TOKEN`: Your Netlify authentication token
+2. `NETLIFY_SITE_ID`: Your Netlify site ID
+3. `FIREBASE_API_KEY`: Firebase project API key
+4. `FIREBASE_AUTH_DOMAIN`: Firebase authentication domain
+5. `FIREBASE_PROJECT_ID`: Firebase project ID
 
-### Netlify Deployment
-1. Connect GitHub repository
-2. Set build settings:
-   - Build command: `echo 'No build step needed'`
-   - Publish directory: `src`
+### Obtaining Secrets
 
-### Environment Variables
-Set the following in Netlify:
-- `FIREBASE_API_KEY`
-- `FIREBASE_AUTH_DOMAIN`
-- `FIREBASE_PROJECT_ID`
+#### Netlify Tokens
+1. Log in to Netlify
+2. Go to User Settings → Applications
+3. Create a new personal access token
+4. Copy the token and add it to GitHub Secrets
+
+#### Firebase Configuration
+1. Go to Firebase Console
+2. Select your project
+3. Project Settings → Service Accounts
+4. Generate a new private key
+
+### Deployment Workflow
+The GitHub Actions workflow (`deploy.yml`) handles:
+- Repository checkout
+- Node.js setup
+- Dependency installation
+- Environment configuration
+- Netlify deployment
+
+### Troubleshooting
+- Ensure all GitHub Secrets are correctly set
+- Verify Netlify and Firebase configurations
+- Check GitHub Actions logs for detailed error messages
 
 ## Local Development
-1. Clone repository
-2. Open `src/js/firebase-config.js`
-3. Replace Firebase config with your credentials
-4. Run on local server
 
-## Testing
-- Comprehensive test suite in `src/js/test-suite.js`
-- Runs automatically in development environment
+### Prerequisites
+- Node.js 16+
+- npm
+- Firebase Project
+- Netlify Account
+
+### Setup
+1. Clone the repository
+2. Run `npm install`
+3. Configure environment variables
+4. Run `npm start`
 
 ## Features
 - User Authentication
@@ -57,11 +74,7 @@ Set the following in Netlify:
 - Logging utility
 
 ## Contributing
-1. Fork repository
-2. Create feature branch
-3. Commit changes
-4. Push to branch
-5. Create pull request
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
 
 ## License
 MIT License

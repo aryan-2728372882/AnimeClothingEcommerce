@@ -2,32 +2,50 @@ name: Deploy to Netlify
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+    - name: Checkout Repository
+      uses: actions/checkout@v3
     
-    - name: Use Node.js
-      uses: actions/setup-node@v2
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
       with:
-        node-version: '14'
+        node-version: '16'
     
     - name: Install Dependencies
-      run: npm ci
+      run: npm install
+    
+    - name: Prepare Environment
+      run: |
+        mkdir -p src/js
+        echo "window._env_ = {
+          FIREBASE_API_KEY: '${{ secrets.FIREBASE_API_KEY }}',
+          FIREBASE_AUTH_DOMAIN: '${{ secrets.FIREBASE_AUTH_DOMAIN }}',
+          FIREBASE_PROJECT_ID: '${{ secrets.FIREBASE_PROJECT_ID }}'
+        };" > src/js/env-config.js
     
     - name: Deploy to Netlify
-      uses: nwtgck/actions-netlify@v1.2
+      uses: nwtgck/actions-netlify@v2.0
       with:
         publish-dir: './src'
         production-branch: main
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        netlify-auth-token: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        netlify-site-id: ${{ secrets.NETLIFY_SITE_ID }}
       env:
         NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
         NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-      timeout-minutes: 1
+      timeout-minutes: 10
+    
+    - name: Create Deployment Summary
+      run: |
+        echo "## Deployment Details" >> $GITHUB_STEP_SUMMARY
+        echo "- **Branch:** \`${{ github.ref }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "- **Commit:** \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "- **Timestamp:** \`$(date -u)\`" >> $GITHUB_STEP_SUMMARY
