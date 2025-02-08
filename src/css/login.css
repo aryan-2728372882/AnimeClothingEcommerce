@@ -135,3 +135,26 @@ body {
 .hidden {
     display: none !important;
 }
+
+/* Network Status Styles */
+.network-status {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 10px;
+    text-align: center;
+    font-weight: bold;
+    z-index: 1000;
+    transition: background-color 0.3s ease;
+}
+
+.network-status.offline {
+    background-color: #ff4d4d;
+    color: white;
+}
+
+.network-status.online {
+    background-color: #4CAF50;
+    color: white;
+}

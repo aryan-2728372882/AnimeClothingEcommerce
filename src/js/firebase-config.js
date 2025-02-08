@@ -70,6 +70,130 @@ const AuthErrorHandler = {
     }
 };
 
+// Network Connectivity Utility
+const NetworkManager = {
+    isOnline: () => navigator.onLine,
+    
+    checkConnectivity: () => {
+        return new Promise((resolve, reject) => {
+            if (!NetworkManager.isOnline()) {
+                reject(new Error('No internet connection'));
+                return;
+            }
+
+            // Additional network check using fetch
+            fetch('https://www.google.com', { 
+                mode: 'no-cors', 
+                cache: 'no-store' 
+            })
+            .then(() => resolve(true))
+            .catch(() => reject(new Error('Network connection is unstable')));
+        });
+    },
+
+    setupConnectivityListeners: () => {
+        window.addEventListener('online', () => {
+            Logger.log('Network connection restored', 'info');
+            document.dispatchEvent(new Event('network-online'));
+        });
+
+        window.addEventListener('offline', () => {
+            Logger.warn('Network connection lost', 'warning');
+            document.dispatchEvent(new Event('network-offline'));
+        });
+    }
+};
+
+// Enhanced Authentication Methods
+const AuthMethods = {
+    signInWithGoogle: async () => {
+        try {
+            // Check network connectivity before authentication
+            await NetworkManager.checkConnectivity();
+
+            const provider = new firebase.auth.GoogleAuthProvider();
+            provider.setCustomParameters({
+                'prompt': 'select_account',
+                'login_hint': 'user@example.com'
+            });
+
+            // Add scopes for more comprehensive access
+            provider.addScope('profile');
+            provider.addScope('email');
+
+            // Implement timeout for authentication
+            return new Promise((resolve, reject) => {
+                const authTimeout = setTimeout(() => {
+                    reject(new Error('Authentication request timed out. Please try again.'));
+                }, 15000); // 15 seconds timeout
+
+                firebase.auth().signInWithPopup(provider)
+                    .then(async (result) => {
+                        clearTimeout(authTimeout);
+                        const user = result.user;
+                        
+                        try {
+                            // Create/Update user profile in Firestore with retry mechanism
+                            await NetworkManager.checkConnectivity();
+                            await firebase.firestore().collection('users').doc(user.uid).set({
+                                name: user.displayName,
+                                email: user.email,
+                                photoURL: user.photoURL,
+                                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                                role: 'customer'
+                            }, { merge: true });
+
+                            resolve(user);
+                        } catch (firestoreError) {
+                            // Firestore save failed, but authentication succeeded
+                            Logger.warn(`Firestore profile update failed: ${firestoreError.message}`);
+                            resolve(user);
+                        }
+                    })
+                    .catch((error) => {
+                        clearTimeout(authTimeout);
+                        
+                        // Detailed network error handling
+                        let userFriendlyMessage = 'Google Sign-In failed. Please try again.';
+                        
+                        switch (error.code) {
+                            case 'auth/network-request-failed':
+                                userFriendlyMessage = 'Network error. Please check your internet connection.';
+                                break;
+                            case 'auth/too-many-requests':
+                                userFriendlyMessage = 'Too many login attempts. Please try again later.';
+                                break;
+                            case 'auth/popup-blocked':
+                                userFriendlyMessage = 'Login popup blocked. Please enable popups.';
+                                break;
+                            case 'auth/popup-closed-by-user':
+                                userFriendlyMessage = 'Login popup was closed. Please try again.';
+                                break;
+                        }
+
+                        Logger.error(`Google Sign-In Error: ${error.code} - ${error.message}`);
+                        reject(new Error(userFriendlyMessage));
+                    });
+            });
+        } catch (connectivityError) {
+            // Network connectivity check failed
+            Logger.error(`Network Error: ${connectivityError.message}`);
+            throw new Error('No internet connection. Please check your network.');
+        }
+    },
+
+    // Enhanced signOut method with network checks
+    signOut: async () => {
+        try {
+            await NetworkManager.checkConnectivity();
+            return firebase.auth().signOut();
+        } catch (error) {
+            Logger.error(`Logout Error: ${error.message}`);
+            throw new Error('Unable to log out. Please check your network connection.');
+        }
+    }
+};
+
 // Authentication State Observer
 const AuthStateManager = {
     updateUI: (user) => {
@@ -119,73 +243,6 @@ const AuthStateManager = {
     }
 };
 
-// Authentication Methods
-const AuthMethods = {
-    signInWithGoogle: () => {
-        const provider = new firebase.auth.GoogleAuthProvider();
-        provider.setCustomParameters({
-            'prompt': 'select_account',
-            'login_hint': 'user@example.com'
-        });
-
-        // Add scopes for more comprehensive access
-        provider.addScope('profile');
-        provider.addScope('email');
-
-        return firebase.auth().signInWithPopup(provider)
-            .then((result) => {
-                const user = result.user;
-                
-                // Create/Update user profile in Firestore
-                return firebase.firestore().collection('users').doc(user.uid).set({
-                    name: user.displayName,
-                    email: user.email,
-                    photoURL: user.photoURL,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    role: 'customer'
-                }, { merge: true });
-            })
-            .catch((error) => {
-                // Detailed error logging
-                console.error('Google Sign-In Error:', {
-                    code: error.code,
-                    message: error.message,
-                    email: error.email,
-                    credential: error.credential
-                });
-
-                // User-friendly error handling
-                let userFriendlyMessage = 'Google Sign-In failed. Please try again.';
-                
-                switch (error.code) {
-                    case 'auth/account-exists-with-different-credential':
-                        userFriendlyMessage = 'An account already exists with a different login method.';
-                        break;
-                    case 'auth/popup-blocked':
-                        userFriendlyMessage = 'Login popup blocked. Please enable popups and try again.';
-                        break;
-                    case 'auth/popup-closed-by-user':
-                        userFriendlyMessage = 'Login popup was closed. Please try again.';
-                        break;
-                }
-
-                // Log to custom logging system
-                Logger.error(`Google Sign-In Error: ${userFriendlyMessage}`);
-                
-                // Throw error for further handling
-                throw new Error(userFriendlyMessage);
-            });
-    },
-    signOut: () => {
-        return auth.signOut()
-            .then(() => {
-                window.location.href = 'login.html';
-                Logger.log('User logged out successfully');
-            })
-            .catch(AuthErrorHandler.handleError);
-    }
-};
-
 // Cart and Checkout Protection
 const RouteProtection = {
     checkCartAccess: () => {
@@ -198,6 +255,9 @@ const RouteProtection = {
         return true;
     }
 };
+
+// Initialize network connectivity listeners
+NetworkManager.setupConnectivityListeners();
 
 // Initialize Authentication State Management
 AuthStateManager.init();

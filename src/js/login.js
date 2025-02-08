@@ -1,4 +1,34 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Network Status UI Elements
+    const networkStatusElement = document.createElement('div');
+    networkStatusElement.id = 'network-status';
+    networkStatusElement.classList.add('network-status');
+    document.body.prepend(networkStatusElement);
+
+    // Network Status Management
+    const updateNetworkStatus = (isOnline) => {
+        networkStatusElement.textContent = isOnline 
+            ? 'Back Online ' 
+            : 'No Internet Connection ';
+        
+        networkStatusElement.classList.toggle('online', isOnline);
+        networkStatusElement.classList.toggle('offline', !isOnline);
+        
+        if (isOnline) {
+            setTimeout(() => {
+                networkStatusElement.classList.remove('online');
+                networkStatusElement.textContent = '';
+            }, 3000);
+        }
+    };
+
+    // Network Event Listeners
+    window.addEventListener('online', () => updateNetworkStatus(true));
+    window.addEventListener('offline', () => updateNetworkStatus(false));
+
+    // Initial network status
+    updateNetworkStatus(navigator.onLine);
+
     // Ensure Firebase is fully loaded
     if (typeof firebase === 'undefined' || !firebase.auth) {
         console.error('Firebase not initialized');
@@ -177,6 +207,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.preventDefault();
                 
                 try {
+                    // Check network connectivity before authentication
+                    if (!navigator.onLine) {
+                        alert('No internet connection. Please check your connection and try again.');
+                        return;
+                    }
+
                     const provider = new firebase.auth.GoogleAuthProvider();
                     provider.setCustomParameters({
                         'prompt': 'select_account'
@@ -213,14 +249,4 @@ document.addEventListener('DOMContentLoaded', () => {
     if (window.location.hash === '#signup') {
         showSignupForm();
     }
-
-    // Network Status Monitoring
-    window.addEventListener('online', () => {
-        console.log('Network connection restored');
-    });
-
-    window.addEventListener('offline', () => {
-        console.warn('Network connection lost');
-        alert('You are currently offline. Please check your internet connection.');
-    });
 });
